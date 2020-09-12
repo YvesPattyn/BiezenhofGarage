@@ -1,0 +1,6 @@
+This file must be copied into the folder /etc/usb_modeswitch.d
+And Pi must be rebooted.
+ verify by 
+>ls /dev/ttyU*
+ or also
+> dmesg | grep USB
