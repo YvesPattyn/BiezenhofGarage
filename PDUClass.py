@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 from bitstring import Bits
 from bitstring import ConstBitStream
 import logging

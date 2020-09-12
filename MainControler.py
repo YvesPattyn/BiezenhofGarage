@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 import sys,json
 import sqlite3
 import datetime
@@ -23,9 +25,9 @@ from LCDClass import lcd
 LCD_LINE_1 = 0x80 # LCD RAM address for the 1st line
 LCD_LINE_2 = 0xC0 # LCD RAM address for the 2nd line
 
-disp = lcd()
+#disp = lcd()
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 logging.info("Initialisation of the modem in progress.")
 try:
     modem = GSMModem()
@@ -33,13 +35,13 @@ except:
     logging.error("Failed to initialise the modem. Must connect and configure for tty0 !")
 
 now = datetime.now()
-disp.lcd_string("Garage poort",LCD_LINE_1)
-disp.lcd_string( str(now.hour) + ":" + str(now.minute) + ":" + str(now.second) ,LCD_LINE_2)
+#disp.lcd_string("Garage poort",LCD_LINE_1)
+#disp.lcd_string( str(now.hour) + ":" + str(now.minute) + ":" + str(now.second) ,LCD_LINE_2)
 
 start = time.time()
 lastopen = datetime.now()
 showlastopen = True
-#log("ProjectBoard initialisation STARTED. --")
+logging.info("ProjectBoard initialisation STARTED. --")
 P = ProjectBoard("Testboard")
 logging.info("Starting listener...")
 while True:
@@ -47,20 +49,22 @@ while True:
     # 1 indicates door is closed
     # 0 indicates door is open
     if (doorstatus == 1):
+        logging.debug("Door is closed")
         if (showlastopen):
-            disp.lcd_string("Poort last open",LCD_LINE_1)
-            disp.lcd_string(lastopen.strftime("%d%b%Y %H:%M"),LCD_LINE_2)
+            #disp.lcd_string("Poort last open",LCD_LINE_1)
+            #disp.lcd_string(lastopen.strftime("%d%b%Y %H:%M"),LCD_LINE_2)
             showlastopen = False
         #logging.info("Door is closed. Reset timer.")
         start = time.time()
     else:
+        logging.debug("Door is open")
         elapsed = time.time() - start
-        disp.lcd_string("Door is open !",LCD_LINE_1)
+        #disp.lcd_string("Door is open !",LCD_LINE_1)
         logging.debug("Door has been open for %i seconds. Check if closure required." % elapsed)
         if (elapsed > 20):
             logging.debug("Sending closure pulse")
-            disp.lcd_string("Auto closure",LCD_LINE_1)
-            disp.lcd_string(datetime.now().strftime("%d%b%Y %H:%M"),LCD_LINE_2)
+            #disp.lcd_string("Auto closure",LCD_LINE_1)
+            #disp.lcd_string(datetime.now().strftime("%d%b%Y %H:%M"),LCD_LINE_2)
             P.sendpulse()
             sleep(10)
             start = time.time()
