@@ -12,12 +12,13 @@ class ProjectBoard:
         self.log("ProjectBoard Name %s <br />" % Name)
         self.name = Name
         try:
-            self.log("ProjectBoard: Door switch init<br />")
-            self.magnet = magnetswitch(13,"Linker Deur ")
+            self.log("ProjectBoard: Door switch init")
+            self.magnet = magnetswitch(20,"Garagedeur")
 
-            self.log("ProjectBoard:relay init<br />")
-            self.relay = relay(26,"Sturing Garage Deur<br />")
-
+            self.log("ProjectBoard:relay ini")
+            self.relay = relay(26,"Sturing Garage Deur")
+            self.ledgreen =led ( 4, "LED green")
+            self.ledred =led ( 17, "LED red")
         except Exception as e:
             self.log("There was an exception at setting up the projectboard.<br />")
             self.log(str(e))
@@ -31,6 +32,12 @@ class ProjectBoard:
         self.log("sendpulse <br />")
         return self.relay.pulse()
 
+    def blinkgreen(self):
+        self.ledgreen.pulse()
+        
+    def blinkred(self):
+        self.ledred.pulse()
+        
     def relay_on(self):
         return self.relay.on()
 

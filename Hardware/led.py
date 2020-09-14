@@ -20,7 +20,7 @@ class led:
         print("led: %s turned off." % self.name)
         GPIO.output(self.gpiopin, GPIO.LOW)
 
-    def pulse(self, duration=2):
+    def pulse(self, duration=0.2):
         print("led: %s was pulsed." % self.name)
         GPIO.output(self.gpiopin, GPIO.HIGH)
         sleep(duration)

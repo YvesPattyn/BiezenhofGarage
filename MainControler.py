@@ -27,7 +27,7 @@ LCD_LINE_2 = 0xC0 # LCD RAM address for the 2nd line
 
 #disp = lcd()
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO, filename="GarageControler.log", format="%(asctime)s %(message)s", datefmt='%d/%m/%Y %H:%M:%S', filemode="w")
 logging.info("Initialisation of the modem in progress.")
 try:
     modem = GSMModem()
@@ -45,11 +45,12 @@ logging.info("ProjectBoard initialisation STARTED. --")
 P = ProjectBoard("Testboard")
 logging.info("Starting listener...")
 while True:
+    P.blinkgreen()
     doorstatus = P.getdoorstatus()
     # 1 indicates door is closed
     # 0 indicates door is open
     if (doorstatus == 1):
-        logging.debug("Door is closed")
+        logging.info("Door is closed")
         if (showlastopen):
             #disp.lcd_string("Poort last open",LCD_LINE_1)
             #disp.lcd_string(lastopen.strftime("%d%b%Y %H:%M"),LCD_LINE_2)
@@ -57,12 +58,12 @@ while True:
         #logging.info("Door is closed. Reset timer.")
         start = time.time()
     else:
-        logging.debug("Door is open")
+        logging.info("Door is open")
         elapsed = time.time() - start
         #disp.lcd_string("Door is open !",LCD_LINE_1)
         logging.debug("Door has been open for %i seconds. Check if closure required." % elapsed)
-        if (elapsed > 20):
-            logging.debug("Sending closure pulse")
+        if (elapsed > 10):
+            logging.info("Sending closure pulse after %i" % elapsed)
             #disp.lcd_string("Auto closure",LCD_LINE_1)
             #disp.lcd_string(datetime.now().strftime("%d%b%Y %H:%M"),LCD_LINE_2)
             P.sendpulse()
@@ -71,6 +72,11 @@ while True:
         lastopen = datetime.now()
         showlastopen = True
     sleep(3)
+    #P.blinkgreen()
+    #msg0 = modem.readMessage(2)
+    #P.blinkgreen()
+    #msg0 = modem.readMessage(1)
+    P.blinkgreen()
     msg0 = modem.readMessage(0)
     try:
         readablemsg = GSMMessage(msg0)
@@ -80,7 +86,7 @@ while True:
         if (readablemsg.OANum in ('+32471569200','+32471569201','+32471569206')):
             print("Phone number %s is authorised to send requests" % readablemsg.OANum)
             if ("OPEN" in readablemsg.getMessage()):
-                print("Open order is now executed")
+                logging.info("Open order is now executed")
                 P.sendpulse()
             else:
                 print("'%s' is not a valid command" % readablemsg.getMessage())
@@ -89,17 +95,3 @@ while True:
         msg0 = modem.deleteAllMessages()
     except:
         logging.debug("There is no message 0")
-        
-    #   if (message.text == "OPEN")
-    #     doorstatus = P.getdoorstatus()
-    #     1 indicates door is closed
-    #     if (doorstatus == 1):
-    #       logging.info("Sending pulse to open the door")
-    #       P.sendpulse()
-
-
-#P.sendpulse()
-#sleep(3)
-#P.relay_on()
-#sleep(3)
-#P.relay_off()
