@@ -15,15 +15,15 @@ class relay:
         self.name = Name
 
     def on(self):
-        logging.info("Relay: %s turned on." % self.name)
+        logging.debug("Relay: %s turned on." % self.name)
         GPIO.output(self.gpiopin, GPIO.HIGH)
 
     def off(self):
-        logging.info("Relay: %s turned off." % self.name)
+        logging.debug("Relay: %s turned off." % self.name)
         GPIO.output(self.gpiopin, GPIO.LOW)
 
     def pulse(self, duration=1.25):
-        logging.info("Relay: %s was pulsed." % self.name)
+        logging.debug("Relay: %s was pulsed." % self.name)
         GPIO.output(self.gpiopin, GPIO.HIGH)
         sleep(duration)
         GPIO.output(self.gpiopin, GPIO.LOW)

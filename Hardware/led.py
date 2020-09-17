@@ -15,15 +15,15 @@ class led:
         self.name = Name
 
     def on(self):
-        logging.info("Led: %s turned on." % self.name)
+        logging.debug("Led: %s turned on." % self.name)
         GPIO.output(self.gpiopin, GPIO.HIGH)
 
     def off(self):
-        logging.info("led: %s turned off." % self.name)
+        logging.debug("led: %s turned off." % self.name)
         GPIO.output(self.gpiopin, GPIO.LOW)
 
     def pulse(self, duration=0.2):
-        logging.info("led: %s was pulsed." % self.name)
+        logging.debug("led: %s was pulsed." % self.name)
         GPIO.output(self.gpiopin, GPIO.HIGH)
         sleep(duration)
         GPIO.output(self.gpiopin, GPIO.LOW)

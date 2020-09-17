@@ -27,7 +27,7 @@ LCD_LINE_2 = 0xC0 # LCD RAM address for the 2nd line
 
 #disp = lcd()
 
-logging.basicConfig(level=logging.INFO, filename="/home/pi/Documents/Project/Biezenhofgarage/GarageControler.log", format="%(asctime)s %(message)s", datefmt='%d/%m/%Y %H:%M:%S', filemode="w")
+logging.basicConfig(level=logging.INFO, filename="/home/pi/Documents/Project/Biezenhofgarage/GarageControler.log", format="%(asctime)s %(message)s", datefmt='%a %d/%m/%Y %H:%M:%S', filemode="a")
 logging.info("Initialisation of the modem in progress.")
 try:
     modem = GSMModem()
@@ -41,16 +41,15 @@ now = datetime.now()
 start = time.time()
 lastopen = datetime.now()
 showlastopen = True
-logging.info("ProjectBoard initialisation STARTED. --")
 P = ProjectBoard("Testboard")
-logging.info("Starting listener...")
+logging.info("Now waiting for events . . .")
 while True:
     P.blinkgreen()
     doorstatus = P.getdoorstatus()
     # 1 indicates door is closed
     # 0 indicates door is open
     if (doorstatus == 1):
-        logging.info("Door is closed")
+        logging.debug("Door is closed")
         if (showlastopen):
             #disp.lcd_string("Poort last open",LCD_LINE_1)
             #disp.lcd_string(lastopen.strftime("%d%b%Y %H:%M"),LCD_LINE_2)
@@ -61,14 +60,15 @@ while True:
         logging.info("Door is open")
         elapsed = time.time() - start
         #disp.lcd_string("Door is open !",LCD_LINE_1)
-        logging.info("Door has been open for %i seconds. Check if closure required." % elapsed)
-        if (elapsed > 10):
-            logging.info("Sending closure pulse after %i" % elapsed)
+        logging.debug("Door has been open for %i seconds. Check if closure required." % elapsed)
+        if (elapsed > 180):
+            logging.info("Door was open for %i seconds. Pulse is sent." % elapsed)
             #disp.lcd_string("Auto closure",LCD_LINE_1)
             #disp.lcd_string(datetime.now().strftime("%d%b%Y %H:%M"),LCD_LINE_2)
             P.sendpulse()
-            sleep(10)
+            sleep(60)
             start = time.time()
+            logging.info("Resume waiting for events . . .")
         lastopen = datetime.now()
         showlastopen = True
     sleep(3)
@@ -86,7 +86,7 @@ while True:
                 logging.info("Open order is now executed")
                 P.sendpulse()
             else:
-                logging.info("'%s' is not a valid command" % readablemsg.getMessage())
+                logging.debug("'%s' is not a valid command" % readablemsg.getMessage())
         else:
             logging.warn("Phone number %s is authorised NOT to send requests" % readablemsg.OANum)
         msg0 = modem.deleteAllMessages()

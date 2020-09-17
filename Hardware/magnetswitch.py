@@ -15,5 +15,5 @@ class magnetswitch:
 
     def getstatus(self):
         status = GPIO.input(self.gpiopin)
-        logging.info("Magnetic Switch status=%i" % status)
+        logging.debug("Magnetic Switch status=%i" % status)
         return status

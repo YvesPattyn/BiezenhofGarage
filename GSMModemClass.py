@@ -75,17 +75,17 @@ class GSMModem:
         return allMessages
         
     def deleteMessage(self,messageNumber):
-        logging.info("deleteMessage %s" % messageNumber)
+        logging.debug("deleteMessage %s" % messageNumber)
         cmd ='AT+CMGD=%s\r\n' % messageNumber
         logging.debug(self.serialCommand(cmd))
 
     def deleteAllMessages(self):
-        logging.info("deleteAllMessages")
+        logging.debug("deleteAllMessages")
         cmd ='AT+CMGD=1,4\r\n'
         logging.debug(self.serialCommand(cmd))
             
     def readMessage(self,messageNumber):       
-        logging.info("readMessage %s" % messageNumber)
+        logging.debug("readMessage %s" % messageNumber)
         # PDU Mode on
         retval = "NOMSG"
         logging.debug("Switching to PDU mode.")
