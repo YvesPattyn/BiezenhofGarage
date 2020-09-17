@@ -1,3 +1,4 @@
+import logging
 import RPi.GPIO as GPIO
 from time import sleep
 
@@ -6,6 +7,7 @@ class relay:
     gpiopin = 0
 
     def __init__(self,GpioPin,Name):
+        logging.info("Initialise Relay %s on GpioPin %i" % (Name, GpioPin))
         GPIO.setwarnings(False)
         GPIO.setmode(GPIO.BCM)
         GPIO.setup(GpioPin,GPIO.OUT)
@@ -13,15 +15,15 @@ class relay:
         self.name = Name
 
     def on(self):
-        print("relay: %s turned on." % self.name)
+        logging.info("Relay: %s turned on." % self.name)
         GPIO.output(self.gpiopin, GPIO.HIGH)
 
     def off(self):
-        print("relay: %s turned off." % self.name)
+        logging.info("Relay: %s turned off." % self.name)
         GPIO.output(self.gpiopin, GPIO.LOW)
 
     def pulse(self, duration=1.25):
-        print("relay: %s was pulsed." % self.name)
+        logging.info("Relay: %s was pulsed." % self.name)
         GPIO.output(self.gpiopin, GPIO.HIGH)
         sleep(duration)
         GPIO.output(self.gpiopin, GPIO.LOW)

@@ -1,3 +1,4 @@
+import logging
 import RPi.GPIO as GPIO
 
 class magnetswitch:
@@ -5,6 +6,7 @@ class magnetswitch:
     name = ""
 
     def __init__(self,GpioPin,Name):
+        logging.info("Initialise Magnetic Switch %s on GpioPin %i" % (Name, GpioPin) )
         GPIO.setwarnings(False)
         GPIO.setmode(GPIO.BCM)
         GPIO.setup(GpioPin,GPIO.IN)
@@ -12,4 +14,6 @@ class magnetswitch:
         self.name = Name
 
     def getstatus(self):
-        return GPIO.input(self.gpiopin)
+        status = GPIO.input(self.gpiopin)
+        logging.info("Magnetic Switch status=%i" % status)
+        return status

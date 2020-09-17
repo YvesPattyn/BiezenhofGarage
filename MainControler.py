@@ -27,7 +27,7 @@ LCD_LINE_2 = 0xC0 # LCD RAM address for the 2nd line
 
 #disp = lcd()
 
-logging.basicConfig(level=logging.INFO, filename="GarageControler.log", format="%(asctime)s %(message)s", datefmt='%d/%m/%Y %H:%M:%S', filemode="w")
+logging.basicConfig(level=logging.INFO, filename="/home/pi/Documents/Project/Biezenhofgarage/GarageControler.log", format="%(asctime)s %(message)s", datefmt='%d/%m/%Y %H:%M:%S', filemode="w")
 logging.info("Initialisation of the modem in progress.")
 try:
     modem = GSMModem()
@@ -61,7 +61,7 @@ while True:
         logging.info("Door is open")
         elapsed = time.time() - start
         #disp.lcd_string("Door is open !",LCD_LINE_1)
-        logging.debug("Door has been open for %i seconds. Check if closure required." % elapsed)
+        logging.info("Door has been open for %i seconds. Check if closure required." % elapsed)
         if (elapsed > 10):
             logging.info("Sending closure pulse after %i" % elapsed)
             #disp.lcd_string("Auto closure",LCD_LINE_1)
@@ -72,26 +72,23 @@ while True:
         lastopen = datetime.now()
         showlastopen = True
     sleep(3)
-    #P.blinkgreen()
-    #msg0 = modem.readMessage(2)
-    #P.blinkgreen()
-    #msg0 = modem.readMessage(1)
     P.blinkgreen()
     msg0 = modem.readMessage(0)
     try:
         readablemsg = GSMMessage(msg0)
-        print("Message: %s " % readablemsg.getMessage())
-        print("Received from %s " % readablemsg.OANum)
+        logging.info("Message: %s " % readablemsg.getMessage())
+        logging.info("Received from %s " % readablemsg.OANum)
         # Get a the next message from the SIM
         if (readablemsg.OANum in ('+32471569200','+32471569201','+32471569206')):
-            print("Phone number %s is authorised to send requests" % readablemsg.OANum)
-            if ("OPEN" in readablemsg.getMessage()):
+            logging.info("Phone number %s is authorised to send requests" % readablemsg.OANum)
+            smsmessage = readablemsg.getMessage()
+            if ("OPEN" in smsmessage.upper()):
                 logging.info("Open order is now executed")
                 P.sendpulse()
             else:
-                print("'%s' is not a valid command" % readablemsg.getMessage())
+                logging.info("'%s' is not a valid command" % readablemsg.getMessage())
         else:
-            print("Phone number %s is authorised NOT to send requests" % readablemsg.OANum)
+            logging.warn("Phone number %s is authorised NOT to send requests" % readablemsg.OANum)
         msg0 = modem.deleteAllMessages()
     except:
         logging.debug("There is no message 0")
