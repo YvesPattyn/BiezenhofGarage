@@ -26,13 +26,31 @@ LCD_LINE_1 = 0x80 # LCD RAM address for the 1st line
 LCD_LINE_2 = 0xC0 # LCD RAM address for the 2nd line
 
 #disp = lcd()
+logging.basicConfig(
+    level=logging.INFO,
+    filename="/home/pi/Documents/BiezenhofGarage/GarageControler.log",
+    format="%(asctime)s %(message)s",
+    datefmt='%a %d/%m/%Y %H:%M:%S',
+    filemode="a")
+console = logging.StreamHandler()
+console.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
+console.setFormatter(formatter)
+logging.getLogger().addHandler(console)
 
-logging.basicConfig(level=logging.INFO, filename="/home/pi/Documents/Project/Biezenhofgarage/GarageControler.log", format="%(asctime)s %(message)s", datefmt='%a %d/%m/%Y %H:%M:%S', filemode="a")
+errcntr = 0
+modeminit = False
 logging.info("Initialisation of the modem in progress.")
-try:
-    modem = GSMModem()
-except:
-    logging.error("Failed to initialise the modem. Must connect and configure for tty0 !")
+while (errcntr < 6):
+    sleep(5)
+    try:
+        modem = GSMModem()
+        modeminit = True
+        logging.info("Modem initialisation SUCCESS.")
+        break
+    except:
+        errcntr = errcntr + 1
+        logging.error("Failed attempt [%i] to initialise the modem likely no access to ttyUSB0!" % errcntr)
 
 now = datetime.now()
 #disp.lcd_string("Garage poort",LCD_LINE_1)
@@ -57,10 +75,9 @@ while True:
         #logging.info("Door is closed. Reset timer.")
         start = time.time()
     else:
-        logging.info("Door is open")
         elapsed = time.time() - start
         #disp.lcd_string("Door is open !",LCD_LINE_1)
-        logging.debug("Door has been open for %i seconds. Check if closure required." % elapsed)
+        logging.info("Door has been open for %i seconds and will close in %i seconds." % (elapsed, 180 - elapsed))
         if (elapsed > 180):
             logging.info("Door was open for %i seconds. Pulse is sent." % elapsed)
             #disp.lcd_string("Auto closure",LCD_LINE_1)
@@ -73,22 +90,26 @@ while True:
         showlastopen = True
     sleep(3)
     P.blinkgreen()
-    msg0 = modem.readMessage(0)
-    try:
-        readablemsg = GSMMessage(msg0)
-        logging.info("Message: %s " % readablemsg.getMessage())
-        logging.info("Received from %s " % readablemsg.OANum)
-        # Get a the next message from the SIM
-        if (readablemsg.OANum in ('+32471569200','+32471569201','+32471569206')):
-            logging.info("Phone number %s is authorised to send requests" % readablemsg.OANum)
-            smsmessage = readablemsg.getMessage()
-            if ("OPEN" in smsmessage.upper()):
-                logging.info("Open order is now executed")
-                P.sendpulse()
-            else:
-                logging.debug("'%s' is not a valid command" % readablemsg.getMessage())
-        else:
-            logging.warn("Phone number %s is authorised NOT to send requests" % readablemsg.OANum)
-        msg0 = modem.deleteAllMessages()
-    except:
-        logging.debug("There is no message 0")
+    # If there is a modem attached, we check if there is a message on the SIM card.
+    if (modeminit):
+        msg0 = modem.readMessage(0)
+        if (msg0 != "NOMSG"):
+            logging.info("Attempt to check Huawei Modem")
+            try:
+                readablemsg = GSMMessage(msg0)
+                logging.info("Message: %s " % readablemsg.getMessage())
+                logging.info("Received from %s " % readablemsg.OANum)
+                # Get a the next message from the SIM
+                if (readablemsg.OANum in ('+32471569200','+32471569201','+32471569206')):
+                    logging.info("Phone number %s is authorised to send requests" % readablemsg.OANum)
+                    smsmessage = readablemsg.getMessage()
+                    if ("OPEN" in smsmessage.upper()):
+                        logging.info("Open order is now executed")
+                        P.sendpulse()
+                    else:
+                        logging.debug("'%s' is not a valid command" % readablemsg.getMessage())
+                else:
+                    logging.warn("Phone number %s is authorised NOT to send requests" % readablemsg.OANum)
+                msg0 = modem.deleteAllMessages()
+            except Error as err:
+                logging.error("MODEM ERROR: %s " % err)
