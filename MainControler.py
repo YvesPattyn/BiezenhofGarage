@@ -22,26 +22,32 @@ from LCDClass import lcd
 # Optional regular SMS sending to indicate system is operational
 # Suggestion : every 100 times the door open an SMS is sent to Yves'mobile.
 #
-LCD_LINE_1 = 0x80 # LCD RAM address for the 1st line
-LCD_LINE_2 = 0xC0 # LCD RAM address for the 2nd line
+#LCD_LINE_1 = 0x80 # LCD RAM address for the 1st line
+#LCD_LINE_2 = 0xC0 # LCD RAM address for the 2nd line
 
+ALERT_OPEN_DOOR = 300 #After door closure pulse, when more then ALERT_OPEN_DOOR seconds elpased and door is still open issue ALERT.
+MAX_OPEN_TIME = 180 #If door magnet detects door is open for MAX_OPEN_TIME, door gets shut automaticaly.
+DOOR_OPEN = 0 #GPIO status indocating an OPEN door.
+DOOR_CLOSED = 1  #GPIO status indocating an CLOSED door.
+LOOP_SLEEP = 3 # Check the status every LOOP_SLEEP seconds.
+MODEM_INIT_ATTEMPTS = 5
 #disp = lcd()
 logging.basicConfig(
     level=logging.INFO,
-    filename="/home/pi/Documents/BiezenhofGarage/GarageControler.log",
+    filename="/home/pi/Logs/BiezenhofGarage.log",
     format="%(asctime)s %(message)s",
     datefmt='%a %d/%m/%Y %H:%M:%S',
     filemode="a")
 console = logging.StreamHandler()
 console.setLevel(logging.DEBUG)
-formatter = logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
+formatter = logging.Formatter('%(asctime)s %(message)s')
 console.setFormatter(formatter)
 logging.getLogger().addHandler(console)
 
 errcntr = 0
 modeminit = False
 logging.info("Initialisation of the modem in progress.")
-while (errcntr < 6):
+while (errcntr < MODEM_INIT_ATTEMPTS):
     sleep(5)
     try:
         modem = GSMModem()
@@ -66,7 +72,7 @@ while True:
     doorstatus = P.getdoorstatus()
     # 1 indicates door is closed
     # 0 indicates door is open
-    if (doorstatus == 1):
+    if (doorstatus == DOOR_CLOSED):
         logging.debug("Door is closed")
         if (showlastopen):
             #disp.lcd_string("Poort last open",LCD_LINE_1)
@@ -77,24 +83,35 @@ while True:
     else:
         elapsed = time.time() - start
         #disp.lcd_string("Door is open !",LCD_LINE_1)
-        logging.info("Door has been open for %i seconds and will close in %i seconds." % (elapsed, 180 - elapsed))
-        if (elapsed > 180):
+        logging.info("Door has been open for %i seconds and will close in %i seconds." % (elapsed, MAX_OPEN_TIME - elapsed))
+        if (elapsed > MAX_OPEN_TIME):
             logging.info("Door was open for %i seconds. Pulse is sent." % elapsed)
             #disp.lcd_string("Auto closure",LCD_LINE_1)
             #disp.lcd_string(datetime.now().strftime("%d%b%Y %H:%M"),LCD_LINE_2)
             P.sendpulse()
-            sleep(60)
+            startclosing = time.time()
+            doorstatus = P.getdoorstatus()
+            # 1 indicates door is closed
+            # 0 indicates door is open
+            while (doorstatus == DOOR_OPEN):
+                P.blinkred(20)
+                doorstatus = P.getdoorstatus()
+                elapsedclosing = time.time() - startclosing
+                logging.info("Door is been closing for %i seconds." % elapsedclosing)
+                if (elapsedclosing > ALERT_OPEN_DOOR):
+                    modem.sendMessage('+32471569206',"ALERT Biezenhof Garagedeur has been open for over 5 minutes.")
+                    startclosing = time.time()
             start = time.time()
             logging.info("Resume waiting for events . . .")
         lastopen = datetime.now()
         showlastopen = True
-    sleep(3)
+    sleep(LOOP_SLEEP)
     P.blinkgreen()
     # If there is a modem attached, we check if there is a message on the SIM card.
     if (modeminit):
         msg0 = modem.readMessage(0)
         if (msg0 != "NOMSG"):
-            logging.info("Attempt to check Huawei Modem")
+            logging.debug("Decoding message retrieved from modem.")
             try:
                 readablemsg = GSMMessage(msg0)
                 logging.info("Message: %s " % readablemsg.getMessage())
@@ -107,7 +124,7 @@ while True:
                         logging.info("Open order is now executed")
                         P.sendpulse()
                     else:
-                        logging.debug("'%s' is not a valid command" % readablemsg.getMessage())
+                        logging.warn("'%s' is not a valid command" % readablemsg.getMessage())
                 else:
                     logging.warn("Phone number %s is authorised NOT to send requests" % readablemsg.OANum)
                 msg0 = modem.deleteAllMessages()
