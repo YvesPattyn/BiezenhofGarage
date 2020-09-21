@@ -24,7 +24,19 @@ class ProjectBoard:
 
     def sendpulse(self):
         return self.relay.pulse()
-
+    
+    def green_on(self):
+        self.ledgreen.on()
+        
+    def green_off(self):
+        self.ledgreen.off()
+        
+    def red_on(self):
+        self.ledred.on()
+        
+    def red_off(self):
+        self.ledgred.off()
+        
     def blinkgreen(self):
         self.ledgreen.pulse()
         
