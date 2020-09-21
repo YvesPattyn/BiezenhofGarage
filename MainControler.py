@@ -74,6 +74,7 @@ while True:
     # 0 indicates door is open
     if (doorstatus == DOOR_CLOSED):
         logging.debug("Door is closed")
+        P.red_off();
         if (showlastopen):
             #disp.lcd_string("Poort last open",LCD_LINE_1)
             #disp.lcd_string(lastopen.strftime("%d%b%Y %H:%M"),LCD_LINE_2)
@@ -84,7 +85,8 @@ while True:
         elapsed = time.time() - start
         #disp.lcd_string("Door is open !",LCD_LINE_1)
         logging.info("Door has been open for %i seconds and will close in %i seconds." % (elapsed, MAX_OPEN_TIME - elapsed))
-        #Red led goes ON until time is elapsed or door is closed.
+        #Red led goes ON the door is confirmed closed.
+        P.red_on();
         if (elapsed > MAX_OPEN_TIME):
             logging.info("Door was open for %i seconds. Pulse is sent." % elapsed)
             #disp.lcd_string("Auto closure",LCD_LINE_1)
