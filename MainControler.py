@@ -84,6 +84,7 @@ while True:
         elapsed = time.time() - start
         #disp.lcd_string("Door is open !",LCD_LINE_1)
         logging.info("Door has been open for %i seconds and will close in %i seconds." % (elapsed, MAX_OPEN_TIME - elapsed))
+        #Red led goes ON until time is elapsed or door is closed.
         if (elapsed > MAX_OPEN_TIME):
             logging.info("Door was open for %i seconds. Pulse is sent." % elapsed)
             #disp.lcd_string("Auto closure",LCD_LINE_1)
