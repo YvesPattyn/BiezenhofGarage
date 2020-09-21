@@ -37,9 +37,9 @@ logging.basicConfig(
     filename="/home/pi/Logs/BiezenhofGarage.log",
     format="%(asctime)s %(message)s",
     datefmt='%a %d/%m/%Y %H:%M:%S',
-    filemode="a")
+    filemode="w")
 console = logging.StreamHandler()
-console.setLevel(logging.DEBUG)
+console.setLevel(logging.INFO)
 formatter = logging.Formatter('%(asctime)s %(message)s')
 console.setFormatter(formatter)
 logging.getLogger().addHandler(console)
@@ -109,24 +109,35 @@ while True:
     P.blinkgreen()
     # If there is a modem attached, we check if there is a message on the SIM card.
     if (modeminit):
-        msg0 = modem.readMessage(0)
-        if (msg0 != "NOMSG"):
-            logging.debug("Decoding message retrieved from modem.")
-            try:
-                readablemsg = GSMMessage(msg0)
-                logging.info("Message: %s " % readablemsg.getMessage())
-                logging.info("Received from %s " % readablemsg.OANum)
-                # Get a the next message from the SIM
-                if (readablemsg.OANum in ('+32471569200','+32471569201','+32471569206')):
-                    logging.info("Phone number %s is authorised to send requests" % readablemsg.OANum)
-                    smsmessage = readablemsg.getMessage()
-                    if ("OPEN" in smsmessage.upper()):
-                        logging.info("Open order is now executed")
-                        P.sendpulse()
+        msgNumbers = modem.getMessageNumbers()
+        print("MessageNumbers in modem")
+        print(msgNumbers)
+        pulseSent = False
+        for msgNr in msgNumbers:
+            msg = modem.readMessage(msgNr)
+            if (msg != "NOMSG"):
+                logging.debug("Decoding message retrieved from modem.")
+                try:
+                    readablemsg = GSMMessage(msg)
+                    logging.info("Message: %s " % readablemsg.getMessage())
+                    logging.info("Received from %s " % readablemsg.OANum)
+                    # Get a the next message from the SIM
+                    if (readablemsg.OANum in ('+32471569200','+32471569201','+32471569206')):
+                        logging.info("Phone number %s is authorised to send requests" % readablemsg.OANum)
+                        smsmessage = readablemsg.getMessage()
+                        if ("OPEN" in smsmessage.upper()):
+                            if (pulseSent):
+                                logging.info("A pulse was already sent in this set of SMS's.")
+                                logging.info("Did 2 persons sent an Open command at the same time?")
+                            else:
+                                logging.info("Open pulse is now sent.")
+                                P.sendpulse()
+                                pulseSent = True
+                        else:
+                            logging.warn("'%s' is not a valid command" % readablemsg.getMessage())
                     else:
-                        logging.warn("'%s' is not a valid command" % readablemsg.getMessage())
-                else:
-                    logging.warn("Phone number %s is authorised NOT to send requests" % readablemsg.OANum)
-                msg0 = modem.deleteAllMessages()
-            except Error as err:
-                logging.error("MODEM ERROR: %s " % err)
+                        logging.warn("Phone number %s is NOT authorised to send requests" % readablemsg.OANum)
+                        modem.sendMessage('+32471569206',"ALERT SMS received from unauthorized number %s." % readablemsg.OANum)
+                    msg = modem.deleteMessage(msgNr)
+                except Error as err:
+                    logging.error("MODEM ERROR: %s " % err)

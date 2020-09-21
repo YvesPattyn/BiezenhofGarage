@@ -74,6 +74,17 @@ class GSMModem:
         logging.info("--- allMessages ---- END")
         return allMessages
         
+    def getMessageNumbers(self):
+        messageNumbers = [0]
+        messageNumbers.clear()
+        msgs = self.getAllMessages()
+        splitted = msgs.split('\r\n')
+        for x in splitted:
+            if ("+CMGL:" in x):
+                part1 = x.split(',')[0]
+                messageNumbers.append(int(part1.replace('+CMGL: ','')))
+        return messageNumbers
+        
     def deleteMessage(self,messageNumber):
         logging.debug("deleteMessage %s" % messageNumber)
         cmd ='AT+CMGD=%s\r\n' % messageNumber
