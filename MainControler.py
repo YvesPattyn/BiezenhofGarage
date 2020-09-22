@@ -113,8 +113,8 @@ while True:
     # If there is a modem attached, we check if there is a message on the SIM card.
     if (modeminit):
         msgNumbers = modem.getMessageNumbers()
-        print("MessageNumbers in modem")
-        print(msgNumbers)
+        logging.info("MessageNumbers in modem")
+        logging.info(msgNumbers)
         pulseSent = False
         for msgNr in msgNumbers:
             msg = modem.readMessage(msgNr)

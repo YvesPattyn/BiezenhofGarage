@@ -69,9 +69,9 @@ class GSMModem:
         # List all messages
         cmd = 'AT+CMGL="ALL"\r\n'
         allMessages = self.serialCommand(cmd)
-        logging.info("--- allMessages ---- Begin")
-        logging.info(allMessages)
-        logging.info("--- allMessages ---- END")
+        logging.debug("--- allMessages ---- Begin")
+        logging.debug(allMessages)
+        logging.debug("--- allMessages ---- END")
         return allMessages
         
     def getMessageNumbers(self):

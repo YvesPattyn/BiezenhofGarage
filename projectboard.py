@@ -35,7 +35,7 @@ class ProjectBoard:
         self.ledred.on()
         
     def red_off(self):
-        self.ledgred.off()
+        self.ledred.off()
         
     def blinkgreen(self):
         self.ledgreen.pulse()
