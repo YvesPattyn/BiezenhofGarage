@@ -25,8 +25,8 @@ from LCDClass import lcd
 #LCD_LINE_1 = 0x80 # LCD RAM address for the 1st line
 #LCD_LINE_2 = 0xC0 # LCD RAM address for the 2nd line
 
-ALERT_OPEN_DOOR = 300 #After door closure pulse, when more then ALERT_OPEN_DOOR seconds elpased and door is still open issue ALERT.
-MAX_OPEN_TIME = 180 #If door magnet detects door is open for MAX_OPEN_TIME, door gets shut automaticaly.
+ALERT_OPEN_DOOR = 300 #300 After door closure pulse, when more then ALERT_OPEN_DOOR seconds elpased and door is still open issue ALERT.
+MAX_OPEN_TIME = 180 #180 If door magnet detects door is open for MAX_OPEN_TIME, door gets shut automaticaly.
 DOOR_OPEN = 0 #GPIO status indocating an OPEN door.
 DOOR_CLOSED = 1  #GPIO status indocating an CLOSED door.
 LOOP_SLEEP = 3 # Check the status every LOOP_SLEEP seconds.
@@ -113,8 +113,8 @@ while True:
     # If there is a modem attached, we check if there is a message on the SIM card.
     if (modeminit):
         msgNumbers = modem.getMessageNumbers()
-        logging.info("MessageNumbers in modem")
-        logging.info(msgNumbers)
+        logging.debug("MessageNumbers in modem")
+        logging.debug(msgNumbers)
         pulseSent = False
         for msgNr in msgNumbers:
             msg = modem.readMessage(msgNr)

@@ -62,8 +62,8 @@ class GSMModem:
     
     def getAllMessages(self):
         # Text Mode on
-        logging.info("getAllMessages")
-        logging.info("Switching to TEXT mode.")
+        logging.debug("getAllMessages")
+        logging.debug("Switching to TEXT mode.")
         cmd = "AT+CMGF=1\r\n"
         logging.debug(self.serialCommand(cmd))
         # List all messages
