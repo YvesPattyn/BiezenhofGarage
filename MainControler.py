@@ -11,6 +11,7 @@ from GSMModemClass import GSMModem
 from PDUClass import GSMMessage
 from projectboard import ProjectBoard
 from LCDClass import lcd
+from MessageHandler import smsmessagehandler
 # This is an endless loop that will check
 # - if an SMS message comes in and is valid
 # - if valid pulses the Relay to open the door.
@@ -33,7 +34,11 @@ LOOP_SLEEP = 3 # Check the status every LOOP_SLEEP seconds.
 MODEM_INIT_ATTEMPTS = 5
 NOTIFY = True
 UNNOTIFY = False
+
+notification = UNNOTIFY
 #disp = lcd()
+
+
 logging.basicConfig(
   level=logging.INFO,
   filename="/home/pi/Logs/BiezenhofGarage.log",
@@ -48,7 +53,6 @@ logging.getLogger().addHandler(console)
 
 errcntr = 0
 modeminit = False
-notification = UNNOTIFY
 logging.info("Initialisation of the modem in progress.")
 while errcntr < MODEM_INIT_ATTEMPTS:
   sleep(5)
@@ -70,6 +74,8 @@ lastopen = datetime.now()
 showlastopen = True
 dooropenalreadynotified = False
 P = ProjectBoard("GaragedeurBiezenhof")
+smshandler = smsmessagehandler(5)
+
 logging.info("Now waiting for events . . .")
 while True:
   P.blinkgreen()
@@ -107,11 +113,12 @@ while True:
       # 0 indicates door is open
       while doorstatus == DOOR_OPEN:
         P.blinkred(20)
+        smshandler.treatsmsmessages()
         doorstatus = P.getdoorstatus()
         elapsedclosing = time.time() - startclosing
         logging.info("Door is been closing for %i seconds." % elapsedclosing)
-        if (elapsedclosing > ALERT_OPEN_DOOR) and (notification == NOTIFY):
-          modem.sendMessage('+32471569206',"ALERT Biezenhof Garagedeur has been open for over 5 minutes.")
+        if (elapsedclosing > ALERT_OPEN_DOOR):
+          modem.sendMessage('+32471569206',"ALERT Biezenhof Garagedeur open over 5 minutes. New alert in 5 minutes.")
           startclosing = time.time()
       start = time.time()
       logging.info("Resume waiting for events . . .")
@@ -121,59 +128,4 @@ while True:
   P.blinkgreen()
   # If there is a modem attached, we check if there is a message on the SIM card.
   if modeminit:
-    msgNumbers = modem.getMessageNumbers()
-    logging.debug("MessageNumbers in modem")
-    logging.debug(msgNumbers)
-    pulseSent = False
-    for msgNr in msgNumbers:
-      msg = modem.readMessage(msgNr)
-      modem.deleteMessage(msgNr)
-      if msg != "NOMSG":
-        logging.debug("Decoding message retrieved from modem.")
-        try:
-          readablemsg = GSMMessage(msg)
-          logging.info("Message: %s " % readablemsg.getMessage())
-          logging.info("Received from %s " % readablemsg.OANum)
-          # Get a the next message from the SIM
-          if readablemsg.OANum in ('+32471569200','+32471569201','+32471569206'):
-            logging.info("Phone number %s is authorised to send requests" % readablemsg.OANum)
-            smsmessage = readablemsg.getMessage()
-            if "OPEN" in smsmessage.upper():
-              if (pulseSent):
-                logging.info("A pulse was already sent in this set of SMS's.")
-                logging.info("Did 2 persons sent an Open command at the same time?")
-              else:
-                logging.info("Open pulse is now sent.")
-                P.sendpulse()
-                pulseSent = True
-            elif "STATUS" in smsmessage.upper():
-              doorstatus = P.getdoorstatus()
-              # 1 indicates door is closed
-              # 0 indicates door is open
-              if doorstatus == DOOR_CLOSED:
-                statusmessage = "STATUS : Door is CLOSED "
-              else:
-                statusmessage = "STATUS : Door is OPEN "
-              if notification:
-                statusmessage = statusmessage + " Notification ON "
-              else:
-                statusmessage = statusmessage + " Notification OFF "
-              modem.sendMessage(readablemsg.OANum,statusmessage)
-            elif "UNNOTIFY" in smsmessage.upper():
-              logging.info("Notifications are turned OFF by SMS.")
-              notification = UNNOTIFY
-            elif "NOTIFY" in smsmessage.upper():
-              logging.info("Notifications are turned ON by SMS.")
-              notification = NOTIFY
-            elif "HELP" in smsmessage.upper():
-              logging.info("HELP Requested and sent to %s." % readablemsg.OANum)
-              modem.sendMessage(readablemsg.OANum,"Commands are : STATUS , OPEN , UNNOTIFY , NOTIFY , HELP.")
-            else:
-              logging.warn("'%s' is not a valid command" % readablemsg.getMessage())
-              modem.sendMessage(readablemsg.OANum,"INVALID COMMAND RECEIVED. Valid commands are : STATUS , OPEN , UNNOTIFY , NOTIFY , HELP.")
-            smsmessage = ""
-          else:
-            logging.warn("Phone number %s is NOT authorised to send requests" % readablemsg.OANum)
-            modem.sendMessage('+32471569206',"ALERT SMS received from unauthorized number %s." % readablemsg.OANum)
-        except Error as err:
-          logging.error("MODEM ERROR: %s " % err)
+    smshandler.treatsmsmessages()
