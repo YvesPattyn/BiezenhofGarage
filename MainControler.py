@@ -113,7 +113,8 @@ while True:
       # 0 indicates door is open
       while doorstatus == DOOR_OPEN:
         P.blinkred(20)
-        smshandler.treatsmsmessages()
+        if smshandler.success:
+          smshandler.treatsmsmessages()
         doorstatus = P.getdoorstatus()
         elapsedclosing = time.time() - startclosing
         logging.info("Door is been closing for %i seconds." % elapsedclosing)
@@ -127,5 +128,5 @@ while True:
   sleep(LOOP_SLEEP)
   P.blinkgreen()
   # If there is a modem attached, we check if there is a message on the SIM card.
-  if modeminit:
+  if smshandler.success:
     smshandler.treatsmsmessages()

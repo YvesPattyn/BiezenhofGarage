@@ -16,12 +16,12 @@ class smsmessagehandler:
       try:
         self.modem = GSMModem()
         logging.info("Modem initialisation SUCCESS.")
-        return True
+        self.success = True
         break
       except:
         errcntr = errcntr + 1
         logging.error("Failed attempt [%i] to initialise the modem likely no access to ttyUSB0!" % errcntr)
-    return False
+        self.success = False
 
   def treatsmsmessages(self):
     msgNumbers = self.modem.getMessageNumbers()
