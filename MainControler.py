@@ -122,11 +122,12 @@ while True:
   # If there is a modem attached, we check if there is a message on the SIM card.
   if modeminit:
     msgNumbers = modem.getMessageNumbers()
-    logging.info("MessageNumbers in modem")
-    logging.info(msgNumbers)
+    logging.debug("MessageNumbers in modem")
+    logging.debug(msgNumbers)
     pulseSent = False
     for msgNr in msgNumbers:
       msg = modem.readMessage(msgNr)
+      modem.deleteMessage(msgNr)
       if msg != "NOMSG":
         logging.debug("Decoding message retrieved from modem.")
         try:
@@ -145,15 +146,34 @@ while True:
                 logging.info("Open pulse is now sent.")
                 P.sendpulse()
                 pulseSent = True
-            else if "UNNOTIFY" in smsmessage.upper():
+            elif "STATUS" in smsmessage.upper():
+              doorstatus = P.getdoorstatus()
+              # 1 indicates door is closed
+              # 0 indicates door is open
+              if doorstatus == DOOR_CLOSED:
+                statusmessage = "STATUS : Door is CLOSED "
+              else:
+                statusmessage = "STATUS : Door is OPEN "
+              if notification:
+                statusmessage = statusmessage + " Notification ON "
+              else:
+                statusmessage = statusmessage + " Notification OFF "
+              modem.sendMessage(readablemsg.OANum,statusmessage)
+            elif "UNNOTIFY" in smsmessage.upper():
+              logging.info("Notifications are turned OFF by SMS.")
               notification = UNNOTIFY
-            else if "NOTIFY" in smsmessage.upper():
+            elif "NOTIFY" in smsmessage.upper():
+              logging.info("Notifications are turned ON by SMS.")
               notification = NOTIFY
+            elif "HELP" in smsmessage.upper():
+              logging.info("HELP Requested and sent to %s." % readablemsg.OANum)
+              modem.sendMessage(readablemsg.OANum,"Commands are : STATUS , OPEN , UNNOTIFY , NOTIFY , HELP.")
             else:
               logging.warn("'%s' is not a valid command" % readablemsg.getMessage())
+              modem.sendMessage(readablemsg.OANum,"INVALID COMMAND RECEIVED. Valid commands are : STATUS , OPEN , UNNOTIFY , NOTIFY , HELP.")
+            smsmessage = ""
           else:
             logging.warn("Phone number %s is NOT authorised to send requests" % readablemsg.OANum)
             modem.sendMessage('+32471569206',"ALERT SMS received from unauthorized number %s." % readablemsg.OANum)
-          msg = modem.deleteMessage(msgNr)
         except Error as err:
           logging.error("MODEM ERROR: %s " % err)
