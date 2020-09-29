@@ -1,20 +1,21 @@
 #!/usr/bin/python
 
-import sys,json
-import sqlite3
 import datetime
 import logging
 import time
-from datetime import datetime
 from time import sleep
 from GSMModemClass import GSMModem
-from PDUClass import GSMMessage
 from projectboard import ProjectBoard
-from LCDClass import lcd
 from MessageHandler import smsmessagehandler
+
+# import sqlite3
+# from datetime import datetime
+# from PDUClass import GSMMessage
+# from LCDClass import lcd
+
 # This is an endless loop that will check
 # - if an SMS message comes in and is valid
-# - if valid pulses the Relay to open the door.
+# - if valid pulses the Relay to open the door or replies with SMS according to incoming message.
 # - verifies how long the door has been open and when threshold is reached pulses the Relay
 #   to close the door.
 # Close door detection will reset openduration.
@@ -26,19 +27,14 @@ from MessageHandler import smsmessagehandler
 #LCD_LINE_1 = 0x80 # LCD RAM address for the 1st line
 #LCD_LINE_2 = 0xC0 # LCD RAM address for the 2nd line
 
-ALERT_OPEN_DOOR = 300 #300 After door closure pulse, when more then ALERT_OPEN_DOOR seconds elpased and door is still open issue ALERT.
-MAX_OPEN_TIME = 180 #180 If door magnet detects door is open for MAX_OPEN_TIME, door gets shut automaticaly.
+ALERT_OPEN_DOOR = 180 #300 After door closure pulse, when more then ALERT_OPEN_DOOR seconds elpased and door is still open issue ALERT.
+MAX_OPEN_TIME = 120 #180 If door magnet detects door is open for MAX_OPEN_TIME, door gets shut automaticaly.
 DOOR_OPEN = 0 #GPIO status indocating an OPEN door.
 DOOR_CLOSED = 1  #GPIO status indocating an CLOSED door.
 LOOP_SLEEP = 3 # Check the status every LOOP_SLEEP seconds.
 MODEM_INIT_ATTEMPTS = 5
-NOTIFY = True
-UNNOTIFY = False
 
-notification = UNNOTIFY
 #disp = lcd()
-
-
 logging.basicConfig(
   level=logging.INFO,
   filename="/home/pi/Logs/BiezenhofGarage.log",
@@ -52,6 +48,7 @@ console.setFormatter(formatter)
 logging.getLogger().addHandler(console)
 
 errcntr = 0
+notification = False
 modeminit = False
 logging.info("Initialisation of the modem in progress.")
 while errcntr < MODEM_INIT_ATTEMPTS:
@@ -94,7 +91,7 @@ while True:
     dooropenalreadynotified = False
   else:
     elapsed = time.time() - start
-    if (not dooropenalreadynotified) and (notification == NOTIFY):
+    if (not dooropenalreadynotified) and (notification):
       modem.sendMessage('+32471569206',"NOTIFICATION: The garage door has just been opened.")
       logging.info("Notification has been sent for door being opened.")
       dooropenalreadynotified = True
@@ -128,5 +125,6 @@ while True:
   sleep(LOOP_SLEEP)
   P.blinkgreen()
   # If there is a modem attached, we check if there is a message on the SIM card.
-  if smshandler.success:
+  if smshandler.ready:
     smshandler.treatsmsmessages()
+    notification = smshandler.notification

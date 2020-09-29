@@ -3,6 +3,7 @@ from PDUClass import GSMMessage
 from projectboard import ProjectBoard
 from time import sleep
 import logging
+import sys
 DOOR_CLOSED = 1
 
 class smsmessagehandler:
@@ -16,12 +17,12 @@ class smsmessagehandler:
       try:
         self.modem = GSMModem()
         logging.info("Modem initialisation SUCCESS.")
-        self.success = True
+        self.ready = True
         break
       except:
         errcntr = errcntr + 1
         logging.error("Failed attempt [%i] to initialise the modem likely no access to ttyUSB0!" % errcntr)
-        self.success = False
+        self.ready = False
 
   def treatsmsmessages(self):
     msgNumbers = self.modem.getMessageNumbers()
@@ -78,5 +79,5 @@ class smsmessagehandler:
           else:
             logging.warn("Phone number %s is NOT authorised to send requests" % readablemsg.OANum)
             self.modem.sendMessage('+32471569206',"ALERT SMS received from unauthorized number %s." % readablemsg.OANum)
-        except Error as error:
-          logging.error("MODEM ERROR: %s " % error)
+        except:
+            logging.error("Unexpected error:", sys.exc_info()[0])            
