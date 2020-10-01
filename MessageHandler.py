@@ -8,6 +8,7 @@ DOOR_CLOSED = 1
 
 class smsmessagehandler:
   def __init__(self, initAttemps):
+    self.ready = False
     self.notification = False
     self.P = ProjectBoard("GaragedeurBiezenhof")
     errcntr = 0

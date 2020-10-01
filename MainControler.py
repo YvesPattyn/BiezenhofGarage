@@ -50,6 +50,7 @@ logging.getLogger().addHandler(console)
 errcntr = 0
 notification = False
 modeminit = False
+modem = None
 logging.info("Initialisation of the modem in progress.")
 while errcntr < MODEM_INIT_ATTEMPTS:
   sleep(5)
@@ -110,7 +111,7 @@ while True:
       # 0 indicates door is open
       while doorstatus == DOOR_OPEN:
         P.blinkred(20)
-        if smshandler.success:
+        if smshandler.ready:
           smshandler.treatsmsmessages()
         doorstatus = P.getdoorstatus()
         elapsedclosing = time.time() - startclosing
