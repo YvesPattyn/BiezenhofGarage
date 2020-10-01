@@ -62,17 +62,28 @@ class GSMModem:
     
     def getAllMessages(self):
         # Text Mode on
-        logging.info("getAllMessages")
-        logging.info("Switching to TEXT mode.")
+        logging.debug("getAllMessages")
+        logging.debug("Switching to TEXT mode.")
         cmd = "AT+CMGF=1\r\n"
         logging.debug(self.serialCommand(cmd))
         # List all messages
         cmd = 'AT+CMGL="ALL"\r\n'
         allMessages = self.serialCommand(cmd)
-        logging.info("--- allMessages ---- Begin")
-        logging.info(allMessages)
-        logging.info("--- allMessages ---- END")
+        logging.debug("--- allMessages ---- Begin")
+        logging.debug(allMessages)
+        logging.debug("--- allMessages ---- END")
         return allMessages
+        
+    def getMessageNumbers(self):
+        messageNumbers = [0]
+        messageNumbers.clear()
+        msgs = self.getAllMessages()
+        splitted = msgs.split('\r\n')
+        for x in splitted:
+            if ("+CMGL:" in x):
+                part1 = x.split(',')[0]
+                messageNumbers.append(int(part1.replace('+CMGL: ','')))
+        return messageNumbers
         
     def deleteMessage(self,messageNumber):
         logging.debug("deleteMessage %s" % messageNumber)
