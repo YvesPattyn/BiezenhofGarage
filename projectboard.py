@@ -3,8 +3,9 @@ from Hardware.led import led
 from Hardware.magnetswitch import magnetswitch
 from Hardware.relay import relay
 
-class ProjectBoard:
 
+class ProjectBoard:
+    ''' This ProjectBoard contains a Relay, a magnetswitch and two leds '''
     def __init__(self,Name):
         logging.info("Initialisation of projectBoard Name %s" % Name)
         self.name = Name
