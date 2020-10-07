@@ -51,6 +51,14 @@ class smsmessagehandler:
                 logging.info("Open pulse is now sent.")
                 self.P.sendpulse()
                 pulseSent = True
+            elif "CLOSE" in smsmessage.upper():
+              if (pulseSent):
+                logging.info("A pulse was already sent in this set of SMS's.")
+                logging.info("Did 2 persons sent an Open command at the same time?")
+              else:
+                logging.info("Close pulse is now sent.")
+                self.P.sendpulse()
+                pulseSent = True
             elif "STATUS" in smsmessage.upper():
               doorstatus = self.P.getdoorstatus()
               # 1 indicates door is closed
