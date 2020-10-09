@@ -7,10 +7,11 @@ import sys
 DOOR_CLOSED = 1
 
 class smsmessagehandler:
-  def __init__(self, initAttemps,P):
+  def __init__(self, initAttemps, Project):
     self.ready = False
     self.notification = True
     self.messagetreated = False
+    self.projectboard = Project
     errcntr = 0
     logging.info("Initialisation of the modem in progress.")
     while errcntr < initAttemps:
@@ -54,7 +55,7 @@ class smsmessagehandler:
                 logging.info("Did 2 persons sent an Open command at the same time?")
               else:
                 logging.info("Open pulse is now sent.")
-                self.P.sendpulse()
+                self.projectboard.sendpulse()
                 pulseSent = True
             elif "CLOSE" in smsmessage.upper():
               if (pulseSent):
@@ -62,10 +63,10 @@ class smsmessagehandler:
                 logging.info("Did 2 persons sent an Open command at the same time?")
               else:
                 logging.info("Close pulse is now sent.")
-                self.P.sendpulse()
+                self.projectboard.sendpulse()
                 pulseSent = True
             elif "STATUS" in smsmessage.upper():
-              doorstatus = self.P.getdoorstatus()
+              doorstatus = self.projectboard.getdoorstatus()
               # 1 indicates door is closed
               # 0 indicates door is open
               if doorstatus == DOOR_CLOSED:
