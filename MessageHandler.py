@@ -7,10 +7,10 @@ import sys
 DOOR_CLOSED = 1
 
 class smsmessagehandler:
-  def __init__(self, initAttemps):
+  def __init__(self, initAttemps,P):
     self.ready = False
-    self.notification = False
-    self.P = ProjectBoard("GaragedeurBiezenhof")
+    self.notification = True
+    self.messagetreated = False
     errcntr = 0
     logging.info("Initialisation of the modem in progress.")
     while errcntr < initAttemps:
@@ -25,7 +25,11 @@ class smsmessagehandler:
         logging.error("Failed attempt [%i] to initialise the modem likely no access to ttyUSB0!" % errcntr)
         self.ready = False
 
+  def sendmessage(self, destination, message):
+    self.modem.sendMessage(destination,message)
+
   def treatsmsmessages(self):
+    self.messagetreated = False
     msgNumbers = self.modem.getMessageNumbers()
     logging.debug("MessageNumbers in modem")
     logging.debug(msgNumbers)
@@ -35,6 +39,7 @@ class smsmessagehandler:
       self.modem.deleteMessage(msgNr)
       if msg != "NOMSG":
         logging.debug("Decoding message retrieved from modem.")
+        self.messagetreated = True
         try:
           readablemsg = GSMMessage(msg)
           logging.info("Message: %s " % readablemsg.getMessage())

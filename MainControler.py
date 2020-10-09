@@ -38,30 +38,33 @@ MODEM_INIT_ATTEMPTS = 5
 logging.basicConfig(
   level=logging.INFO,
   filename="/home/pi/Logs/BiezenhofGarage.log",
-  format="%(asctime)s %(message)s",
+  format="%(levelname)s %(asctime)s %(message)s",
   datefmt='%a %d/%m/%Y %H:%M:%S',
   filemode="w")
 console = logging.StreamHandler()
 console.setLevel(logging.INFO)
-formatter = logging.Formatter('%(asctime)s %(message)s')
+formatter = logging.Formatter('%(levelname)s %(asctime)s %(message)s')
 console.setFormatter(formatter)
 logging.getLogger().addHandler(console)
+logging.info("===  START OF PROGRAM ===")
+logging.info("Loggers have been initiated.")
 
-errcntr = 0
+
 notification = False
-modeminit = False
-modem = None
-logging.info("Initialisation of the modem in progress.")
-while errcntr < MODEM_INIT_ATTEMPTS:
-  sleep(5)
-  try:
-    modem = GSMModem()
-    modeminit = True
-    logging.info("Modem initialisation SUCCESS.")
-    break
-  except:
-    errcntr = errcntr + 1
-    logging.error("Failed attempt [%i] to initialise the modem likely no access to ttyUSB0!" % errcntr)
+#errcntr = 0
+#modeminit = False
+#modem = None
+#logging.info("Initialisation of the modem in progress.")
+#while errcntr < MODEM_INIT_ATTEMPTS:
+#  sleep(5)
+#  try:
+#    modem = GSMModem()
+#    modeminit = True
+#    logging.info("Modem initialisation SUCCESS.")
+#    break
+#  except:
+#    errcntr = errcntr + 1
+#    logging.error("Failed attempt [%i] to initialise the modem likely no access to ttyUSB0!" % errcntr)
 
 now = datetime.now()
 #disp.lcd_string("Garage poort",LCD_LINE_1)
@@ -71,8 +74,10 @@ start = time.time()
 lastopen = datetime.now()
 showlastopen = True
 dooropenalreadynotified = False
+doorclosedalreadynotified = True
 P = ProjectBoard("GaragedeurBiezenhof")
-smshandler = smsmessagehandler(5)
+# Note that messagehandler uses the Projectboard P.
+smshandler = smsmessagehandler(5,P)
 
 logging.info("Now waiting for events . . .")
 while True:
@@ -81,27 +86,31 @@ while True:
   # 1 indicates door is closed
   # 0 indicates door is open
   if doorstatus == DOOR_CLOSED:
+    if not doorclosedalreadynotified:
+      logging.info("The door has just been closed.")
+      doorclosedalreadynotified = True
     logging.debug("Door is closed")
     P.red_off();
     if (showlastopen):
       #disp.lcd_string("Poort last open",LCD_LINE_1)
       #disp.lcd_string(lastopen.strftime("%d%b%Y %H:%M"),LCD_LINE_2)
       showlastopen = False
-    #logging.info("Door is closed. Reset timer.")
+    logging.debug("Door is closed. Reset timer.")
     start = time.time()
     dooropenalreadynotified = False
   else:
+    doorclosedalreadynotified = False
     elapsed = time.time() - start
     if (not dooropenalreadynotified) and (notification):
-      modem.sendMessage('+32471569206',"NOTIFICATION: The garage door has just been opened.")
+      logging.info("The door has just been opened.")
+      smshandler.sendmessage('+32471569206',"NOTIFICATION: The garage door has just been opened.")
       logging.info("Notification has been sent for door being opened.")
       dooropenalreadynotified = True
-    #disp.lcd_string("Door is open !",LCD_LINE_1)
-    logging.info("Door has been open for %i seconds and will close in %i seconds." % (elapsed, MAX_OPEN_TIME - elapsed))
+      #disp.lcd_string("Door is open !",LCD_LINE_1)
     #Red led goes ON the door is confirmed closed.
     P.red_on();
     if elapsed > MAX_OPEN_TIME:
-      logging.info("Door was open for %i seconds. Pulse is sent." % elapsed)
+      logging.info("Door was open for %i seconds. Pulse is sent to close the door." % elapsed)
       #disp.lcd_string("Auto closure",LCD_LINE_1)
       #disp.lcd_string(datetime.now().strftime("%d%b%Y %H:%M"),LCD_LINE_2)
       P.sendpulse()
@@ -115,11 +124,11 @@ while True:
           smshandler.treatsmsmessages()
         doorstatus = P.getdoorstatus()
         elapsedclosing = time.time() - startclosing
-        logging.info("Door is been closing for %i seconds." % elapsedclosing)
         if (elapsedclosing > ALERT_OPEN_DOOR):
           modem.sendMessage('+32471569206',"ALERT Biezenhof Garagedeur open over 5 minutes. New alert in 5 minutes.")
           startclosing = time.time()
       start = time.time()
+      logging.info("Door took %i seconds to close." % elapsedclosing)
       logging.info("Resume waiting for events . . .")
     lastopen = datetime.now()
     showlastopen = True
@@ -128,4 +137,6 @@ while True:
   # If there is a modem attached, we check if there is a message on the SIM card.
   if smshandler.ready:
     smshandler.treatsmsmessages()
+    if smshandler.messagetreated:
+      logging.info("An SMS message was received, and treated.")
     notification = smshandler.notification
