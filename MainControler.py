@@ -125,7 +125,7 @@ while True:
         doorstatus = P.getdoorstatus()
         elapsedclosing = time.time() - startclosing
         if (elapsedclosing > ALERT_OPEN_DOOR):
-          modem.sendMessage('+32471569206',"ALERT Biezenhof Garagedeur open over 5 minutes. New alert in 5 minutes.")
+          smshandler.sendmessage('+32471569206',"ALERT Biezenhof Garagedeur open over 5 minutes. New alert in 5 minutes.")
           startclosing = time.time()
       start = time.time()
       logging.info("Door took %i seconds to close." % elapsedclosing)
