@@ -54,6 +54,7 @@ now = datetime.now()
 #disp.lcd_string("Garage poort",LCD_LINE_1)
 #disp.lcd_string( str(now.hour) + ":" + str(now.minute) + ":" + str(now.second) ,LCD_LINE_2)
 
+nbrloops = 0
 start = time.time()
 lastopen = datetime.now()
 showlastopen = True
@@ -73,30 +74,26 @@ while True:
     if not doorclosedalreadynotified:
       logging.info("The door has just been closed.")
       doorclosedalreadynotified = True
-    logging.debug("Door is closed")
     P.red_off();
     if (showlastopen):
-      #disp.lcd_string("Poort last open",LCD_LINE_1)
-      #disp.lcd_string(lastopen.strftime("%d%b%Y %H:%M"),LCD_LINE_2)
       showlastopen = False
     logging.debug("Door is closed. Reset timer.")
     start = time.time()
     dooropenalreadynotified = False
-  else:
+  else: # The door is OPEN
     doorclosedalreadynotified = False
     elapsed = time.time() - start
-    if (not dooropenalreadynotified) and (notification):
-      logging.info("The door has just been opened.")
-      smshandler.sendmessage('+32471569206',"NOTIFICATION: The garage door has just been opened.")
-      logging.info("Notification has been sent for door being opened.")
+    if not dooropenalreadynotified:
+      if notification:
+        logging.info("The door has just been opened. SMS notification is sent")
+        smshandler.sendmessage('+32471569206',"NOTIFICATION: The garage door has just been opened.")
+      else:
+        logging.info("The door has just been opened. No notification is sent")
       dooropenalreadynotified = True
-      #disp.lcd_string("Door is open !",LCD_LINE_1)
     #Red led goes ON the door is confirmed closed.
     P.red_on();
     if elapsed > MAX_OPEN_TIME:
       logging.info("Door was open for %i seconds. Pulse is sent to close the door." % elapsed)
-      #disp.lcd_string("Auto closure",LCD_LINE_1)
-      #disp.lcd_string(datetime.now().strftime("%d%b%Y %H:%M"),LCD_LINE_2)
       P.sendpulse()
       startclosing = time.time()
       doorstatus = P.getdoorstatus()
@@ -106,17 +103,19 @@ while True:
         P.blinkred(20)
         if smshandler.ready:
           smshandler.treatsmsmessages()
-        doorstatus = P.getdoorstatus()
+        else:
+          logging.error("The smshanlder reports not ready!")
         elapsedclosing = time.time() - startclosing
         if (elapsedclosing > ALERT_OPEN_DOOR):
-          smshandler.sendmessage('+32471569206',"ALERT Biezenhof Garagedeur open over 5 minutes. New alert in 5 minutes.")
+          smshandler.sendmessage('+32471569206',"ALERT Garagedeur open over 5 minutes. Attempting to close... New alert in 5 minutes.")
+          P.sendpulse()
           startclosing = time.time()
+        doorstatus = P.getdoorstatus()
       start = time.time()
       logging.info("Door took %i seconds to close." % elapsedclosing)
       logging.info("Resume waiting for events . . .")
     lastopen = datetime.now()
     showlastopen = True
-  sleep(LOOP_SLEEP)
   P.blinkgreen()
   # If there is a modem attached, we check if there is a message on the SIM card.
   if smshandler.ready:
@@ -126,3 +125,7 @@ while True:
     notification = smshandler.notification
   else:
     logging.error("The smshanlder reports not ready!")
+  sleep(LOOP_SLEEP)
+  if (nbrloops % 9) == 0:
+      logging.info("counting loops %i " % nbrloops)
+  nbrloops += 1
