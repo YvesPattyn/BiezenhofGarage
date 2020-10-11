@@ -60,9 +60,12 @@ lastopen = datetime.now()
 showlastopen = True
 dooropenalreadynotified = False
 doorclosedalreadynotified = True
-P = ProjectBoard("GaragedeurBiezenhof")
-# Note that messagehandler uses the Projectboard P.
-smshandler = smsmessagehandler(5,P)
+try:
+  P = ProjectBoard("GaragedeurBiezenhof")
+  # Note that messagehandler uses the Projectboard P.
+  smshandler = smsmessagehandler(5,P)
+except Exception:
+  logging.exception("Failure to initialise hardware.")
 
 logging.info("Now waiting for events . . .")
 while True:
@@ -100,7 +103,8 @@ while True:
       # 1 indicates door is closed
       # 0 indicates door is open
       while doorstatus == DOOR_OPEN:
-        P.blinkred(20)
+        logging.info("Waiting for the door to be closed...")
+        P.blinkred(60)
         if smshandler.ready:
           smshandler.treatsmsmessages()
         else:
