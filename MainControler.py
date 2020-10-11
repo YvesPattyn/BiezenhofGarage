@@ -4,7 +4,6 @@ from datetime import datetime
 import logging
 import time
 from time import sleep
-from GSMModemClass import GSMModem
 from projectboard import ProjectBoard
 from MessageHandler import smsmessagehandler
 
@@ -23,9 +22,6 @@ from MessageHandler import smsmessagehandler
 # Pulsing is done by a relay.
 # Optional regular SMS sending to indicate system is operational
 # Suggestion : every 100 times the door open an SMS is sent to Yves'mobile.
-#
-#LCD_LINE_1 = 0x80 # LCD RAM address for the 1st line
-#LCD_LINE_2 = 0xC0 # LCD RAM address for the 2nd line
 
 ALERT_OPEN_DOOR = 180 #300 After door closure pulse, when more then ALERT_OPEN_DOOR seconds elpased and door is still open issue ALERT.
 MAX_OPEN_TIME = 120 #180 If door magnet detects door is open for MAX_OPEN_TIME, door gets shut automaticaly.
@@ -51,9 +47,6 @@ logging.info("Loggers have been initiated.")
 
 notification = False
 now = datetime.now()
-#disp.lcd_string("Garage poort",LCD_LINE_1)
-#disp.lcd_string( str(now.hour) + ":" + str(now.minute) + ":" + str(now.second) ,LCD_LINE_2)
-
 nbrloops = 0
 start = time.time()
 lastopen = datetime.now()
@@ -121,6 +114,7 @@ while True:
     lastopen = datetime.now()
     showlastopen = True
   P.blinkgreen()
+  logging.info("Modem status:%s" % smshandler.modem.getStatus())
   # If there is a modem attached, we check if there is a message on the SIM card.
   if smshandler.ready:
     smshandler.treatsmsmessages()
@@ -129,7 +123,7 @@ while True:
     notification = smshandler.notification
   else:
     logging.error("The smshanlder reports not ready!")
-  sleep(LOOP_SLEEP)
   if (nbrloops % 9) == 0:
       logging.info("counting loops %i " % nbrloops)
   nbrloops += 1
+  sleep(LOOP_SLEEP)

@@ -131,7 +131,7 @@ class GSMModem:
         strLine = line.decode()
         logging.debug(strLine)
 
-    def getStatus(self):
+    def getSettings(self):
         retval = []
         # PIN Status
         cmd = "AT+CPIN?\r\n"
@@ -155,3 +155,8 @@ class GSMModem:
         cmd = "AT+CPMS=?\r\n"
         logging.debug(cmd)
         retval.append(self.serialCommand(cmd))
+
+    def getStatus(self):
+        cmd = "AT+CPMS=?\r\n"
+        logging.debug(cmd)
+        return self.serialCommand(cmd)

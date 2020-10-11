@@ -1,6 +1,5 @@
 from GSMModemClass import GSMModem
 from PDUClass import GSMMessage
-from projectboard import ProjectBoard
 from time import sleep
 import logging
 import sys
@@ -8,7 +7,6 @@ DOOR_CLOSED = 1
 
 class smsmessagehandler:
   def __init__(self, initAttemps, Project):
-    self.ready = False
     self.notification = True
     self.messagetreated = False
     self.projectboard = Project
@@ -25,6 +23,8 @@ class smsmessagehandler:
         errcntr = errcntr + 1
         logging.error("Failed attempt [%i] to initialise the modem likely no access to ttyUSB0!" % errcntr)
         self.ready = False
+  def ready(self):
+    return True
 
   def sendmessage(self, destination, message):
     self.modem.sendMessage(destination,message)
