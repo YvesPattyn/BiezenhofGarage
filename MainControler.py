@@ -114,7 +114,8 @@ while True:
     lastopen = datetime.now()
     showlastopen = True
   P.blinkgreen()
-  logging.info("Modem status:%s" % smshandler.modem.getStatus())
+  if not smshandler.modem.getStatus():
+    logging.error("Modem is NOT OK !!! Please check.")
   # If there is a modem attached, we check if there is a message on the SIM card.
   if smshandler.ready:
     smshandler.treatsmsmessages()
