@@ -49,23 +49,7 @@ logging.getLogger().addHandler(console)
 logging.info("===  START OF PROGRAM ===")
 logging.info("Loggers have been initiated.")
 
-
 notification = False
-#errcntr = 0
-#modeminit = False
-#modem = None
-#logging.info("Initialisation of the modem in progress.")
-#while errcntr < MODEM_INIT_ATTEMPTS:
-#  sleep(5)
-#  try:
-#    modem = GSMModem()
-#    modeminit = True
-#    logging.info("Modem initialisation SUCCESS.")
-#    break
-#  except:
-#    errcntr = errcntr + 1
-#    logging.error("Failed attempt [%i] to initialise the modem likely no access to ttyUSB0!" % errcntr)
-
 now = datetime.now()
 #disp.lcd_string("Garage poort",LCD_LINE_1)
 #disp.lcd_string( str(now.hour) + ":" + str(now.minute) + ":" + str(now.second) ,LCD_LINE_2)
