@@ -124,3 +124,5 @@ while True:
     if smshandler.messagetreated:
       logging.info("An SMS message was received, and treated.")
     notification = smshandler.notification
+  else:
+    logging.error("The smshanlder reports not ready!")
