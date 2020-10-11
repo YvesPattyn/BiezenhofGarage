@@ -33,7 +33,7 @@ class smsmessagehandler:
     self.messagetreated = False
     msgNumbers = self.modem.getMessageNumbers()
     logging.debug("MessageNumbers in modem")
-    logging.info(msgNumbers)
+    logging.debug(msgNumbers)
     pulseSent = False
     for msgNr in msgNumbers:
       msg = self.modem.readMessage(msgNr)

@@ -1,10 +1,5 @@
 import serial
-import socket
-import time
-from time import sleep
 from curses import ascii
-from  os import system
-from datetime import datetime
 import logging
 
 class GSMModem:
@@ -160,8 +155,3 @@ class GSMModem:
         cmd = "AT+CPMS=?\r\n"
         logging.debug(cmd)
         retval.append(self.serialCommand(cmd))
-        
-
-
-
-    
