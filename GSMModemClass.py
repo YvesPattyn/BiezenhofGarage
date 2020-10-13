@@ -157,7 +157,7 @@ class GSMModem:
         retval.append(self.serialCommand(cmd))
 
     def getStatus(self):
-        cmd = "AT+CPMS=?\r\n"
+        cmd = "AT+CPMS?\r\n"
         logging.debug(cmd)
         retval = self.serialCommand(cmd)
         isOk = '("SM","ME")' in retval
