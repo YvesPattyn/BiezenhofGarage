@@ -38,21 +38,21 @@ class GSMModem:
     def serialCommand(self, cmd, message = ""):
         retval = ""
         if (message != ""):
-            logging.debug("-- SEND --")
-            logging.debug("  Command:%s" % cmd)
-            logging.debug("---------")
-            logging.debug("  Message:%s" % message)
-            logging.debug("---------")
-            message = message + ascii.ctrl('Z')
-            self.ser.write(cmd.encode())
-            self.ser.write(message.encode())
+          logging.debug("-- SEND --")
+          logging.debug("  Command:%s" % cmd)
+          logging.debug("---------")
+          logging.debug("  Message:%s" % message)
+          logging.debug("---------")
+          message = message + ascii.ctrl('Z')
+          self.ser.write(cmd.encode())
+          self.ser.write(message.encode())
         else:
-            self.ser.write(cmd.encode())
+          self.ser.write(cmd.encode())
         line = self.ser.readline()
         while ( line != b'' ):
-            retval = retval + line.decode()
-            logging.debug(line)
-            line = self.ser.readline()
+          retval = retval + line.decode()
+          logging.debug(line)
+          line = self.ser.readline()
         return retval
     
     def getAllMessages(self):
