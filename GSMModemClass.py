@@ -161,7 +161,7 @@ class GSMModem:
         logging.debug(cmd)
         retval = self.serialCommand(cmd)
         isOk = '"SM",0,30,"SM",0,30,"SM",0,30' in retval
-        if not isOk:
-          logging.warning('Preffered Message Storage is %s while it should be ("SM","ME")("SM","ME")("SM","ME")' % retval)
+        #if not isOk:
+        #logging.warning('Preffered Message Storage is %s while it should be "SM",0,30,"SM",0,30,"SM",0,30' % retval)
         return isOk
 
