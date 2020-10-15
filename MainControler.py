@@ -145,5 +145,5 @@ while True:
   lastlooplog.append("This ends loop %i" % nbrloops)
   with open("LastLoopLog.txt", "w") as f:
     for x in lastlooplog:
-      f.write(x)
+      f.write(x + "\r\n")
   sleep(LOOP_SLEEP)
