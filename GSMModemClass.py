@@ -34,7 +34,7 @@ class GSMModem:
           # Enter PIN code if required
           cmd = 'AT+CPIN="6089"\r\n'
           logging.debug(self.serialCommand(cmd))
-        
+
     def serialCommand(self, cmd, message = ""):
         retval = ""
         if (message != ""):
@@ -54,7 +54,14 @@ class GSMModem:
           logging.debug(line)
           line = self.ser.readline()
         return retval
-    
+
+    def setMessageStore(self):
+        # Preferred Message Storage
+        logging.info("Setting Preferred Message Storage to SIM card.")
+        cmd = 'AT+CPMS="SM","SM","SM"\r\n'
+        logging.debug(cmd)
+        logging.debug(self.serialCommand(cmd))
+
     def getAllMessages(self):
         # Text Mode on
         logging.debug("getAllMessages")
@@ -68,7 +75,7 @@ class GSMModem:
         logging.debug(allMessages)
         logging.debug("--- allMessages ---- END")
         return allMessages
-        
+
     def getMessageNumbers(self):
         messageNumbers = [0]
         messageNumbers.clear()
@@ -79,7 +86,7 @@ class GSMModem:
                 part1 = x.split(',')[0]
                 messageNumbers.append(int(part1.replace('+CMGL: ','')))
         return messageNumbers
-        
+
     def deleteMessage(self,messageNumber):
         logging.debug("deleteMessage %s" % messageNumber)
         cmd ='AT+CMGD=%s\r\n' % messageNumber
@@ -89,8 +96,8 @@ class GSMModem:
         logging.debug("deleteAllMessages")
         cmd ='AT+CMGD=1,4\r\n'
         logging.debug(self.serialCommand(cmd))
-            
-    def readMessage(self,messageNumber):       
+
+    def readMessage(self,messageNumber):
         logging.debug("readMessage %s" % messageNumber)
         # PDU Mode on
         retval = "NOMSG"
@@ -160,8 +167,10 @@ class GSMModem:
         cmd = "AT+CPMS?\r\n"
         logging.debug(cmd)
         retval = self.serialCommand(cmd)
-        isOk = (retval.count('"ME"') == 3)
-        #if not isOk:
-        logging.warning('Preffered Message Storage status is %s ' % retval)
+        isOk = (retval.count('"SM"') == 3)
+        if not isOk:
+            logging.warning('Preffered Message Storage status is %s , while expecting "SM"' % retval)
+            logging.warning('Attempting to reset to "SM","SM","SM" .')
+            self.setMessageStore()
         return isOk
 
