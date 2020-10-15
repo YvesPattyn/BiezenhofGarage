@@ -44,6 +44,7 @@ console.setFormatter(formatter)
 logging.getLogger().addHandler(console)
 logging.info("===  START OF PROGRAM ===")
 logging.info("Loggers have been initiated.")
+lastlooplog = ['Holds most recent loop']
 
 notification = False
 now = datetime.now()
@@ -62,13 +63,17 @@ except Exception:
 
 logging.info("Now waiting for events . . .")
 while True:
+  lastlooplog.clear()
+  lastlooplog.append('Loop starts at %s' % datetime.now())
   P.blinkgreen()
   doorstatus = P.getdoorstatus()
   # 1 indicates door is closed
   # 0 indicates door is open
   if doorstatus == DOOR_CLOSED:
+    lastlooplog.append("The door is Closed")
     if not doorclosedalreadynotified:
       logging.info("The door has just been closed.")
+      lastlooplog.append("The door was just closed")
       doorclosedalreadynotified = True
     P.red_off();
     if (showlastopen):
@@ -77,18 +82,22 @@ while True:
     start = time.time()
     dooropenalreadynotified = False
   else: # The door is OPEN
+    lastlooplog.append("The door is Open")
     doorclosedalreadynotified = False
     elapsed = time.time() - start
     if not dooropenalreadynotified:
       if notification:
+        lastlooplog.append("Open notification is sent")
         logging.info("The door has just been opened. SMS notification is sent")
         smshandler.sendmessage('+32471569206',"NOTIFICATION: The garage door has just been opened.")
       else:
         logging.info("The door has just been opened. No notification is sent")
+        lastlooplog.append("No open notification is sent")
       dooropenalreadynotified = True
     #Red led goes ON the door is confirmed closed.
     P.red_on();
     if elapsed > MAX_OPEN_TIME:
+      lastlooplog.append("Door has been open for too long. Automatic closure.")
       logging.info("Door was open for %i seconds. Pulse is sent to close the door." % elapsed)
       P.sendpulse()
       startclosing = time.time()
@@ -96,14 +105,18 @@ while True:
       # 1 indicates door is closed
       # 0 indicates door is open
       while doorstatus == DOOR_OPEN:
+        lastlooplog.append("Waiting for door closure")
         logging.info("Waiting for the door to be closed...")
         P.blinkred(60)
         if smshandler.ready:
+          lastlooplog.append("SMS Modem reports OK")
           smshandler.treatsmsmessages()
         else:
+          lastlooplog.append("SMS Modem reports NOT OK")
           logging.error("The smshanlder reports not ready!")
         elapsedclosing = time.time() - startclosing
         if (elapsedclosing > ALERT_OPEN_DOOR):
+          lastlooplog.append("ALLERT was sent - abnormal long open door.")
           smshandler.sendmessage('+32471569206',"ALERT Garagedeur open over 5 minutes. Attempting to close... New alert in 5 minutes.")
           P.sendpulse()
           startclosing = time.time()
@@ -116,10 +129,12 @@ while True:
   P.blinkgreen()
   if not smshandler.modem.getStatus():
     logging.error("Modem is NOT OK !!! Please check.")
+    lastlooplog.append("SMS Modem reports NOT OK ")
   # If there is a modem attached, we check if there is a message on the SIM card.
   if smshandler.ready:
     smshandler.treatsmsmessages()
     if smshandler.messagetreated:
+      lastlooplog.append("An SMS was received and handled.")
       logging.info("An SMS message was received, and treated.")
     notification = smshandler.notification
   else:
@@ -127,4 +142,8 @@ while True:
   if (nbrloops % 9) == 0:
       logging.info("counting loops %i " % nbrloops)
   nbrloops += 1
+  lastlooplog.append("This ends loop %i" % nbrloops)
+  with open("LastLoopLog.txt", "w") as f:
+    for x in lastlooplog:
+      f.write(x)
   sleep(LOOP_SLEEP)
