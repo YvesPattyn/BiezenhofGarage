@@ -133,10 +133,11 @@ class GSMModem:
         self.ser.write(textMessage.encode())
         line = self.ser.readline()
         strLine = line.decode()
-        logging.debug(strLine)
-        line = self.ser.readline()
-        strLine = line.decode()
-        logging.debug(strLine)
+        logging.debug('Line before While = %s ' % strLine)
+        while ( (strLine != '') and (line != b'\x00') ):
+            line = self.ser.readline()
+            strLine = line.decode()
+            logging.debug(strLine)
 
     def getSettings(self):
         retval = []
