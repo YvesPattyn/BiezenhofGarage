@@ -160,8 +160,8 @@ class GSMModem:
         cmd = "AT+CPMS?\r\n"
         logging.debug(cmd)
         retval = self.serialCommand(cmd)
-        isOk = '"SM",0,30,"SM",0,30,"SM",0,30' in retval
+        isOk = (retval.count('"ME"') == 3)
         #if not isOk:
-        #logging.warning('Preffered Message Storage is %s while it should be "SM",0,30,"SM",0,30,"SM",0,30' % retval)
+        logging.warning('Preffered Message Storage status is %s ' % retval)
         return isOk
 
