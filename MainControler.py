@@ -139,7 +139,7 @@ while True:
     notification = smshandler.notification
   else:
     logging.error("The smshanlder reports not ready!")
-  if (nbrloops % 9) == 0:
+  if (nbrloops % 300) == 0:
       logging.info("counting loops %i " % nbrloops)
   nbrloops += 1
   lastlooplog.append("This ends loop %i" % nbrloops)

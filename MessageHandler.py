@@ -7,7 +7,7 @@ DOOR_CLOSED = 1
 
 class smsmessagehandler:
   def __init__(self, initAttemps, Project):
-    self.notification = True
+    self.notification = False
     self.messagetreated = False
     self.projectboard = Project
     errcntr = 0
@@ -89,7 +89,8 @@ class smsmessagehandler:
               self.modem.sendMessage(readablemsg.OANum,"Commands are : STATUS , OPEN , UNNOTIFY , NOTIFY , HELP.")
             else:
               logging.warn("'%s' is not a valid command" % readablemsg.getMessage())
-              self.modem.sendMessage(readablemsg.OANum,"INVALID COMMAND RECEIVED. Valid commands are : STATUS , OPEN , UNNOTIFY , NOTIFY , HELP.")
+              if self.notification:
+                self.modem.sendMessage(readablemsg.OANum,"INVALID COMMAND RECEIVED. Valid commands are : STATUS , OPEN , UNNOTIFY , NOTIFY , HELP.")
             smsmessage = ""
           else:
             logging.warn("Phone number %s is NOT authorised to send requests" % readablemsg.OANum)
