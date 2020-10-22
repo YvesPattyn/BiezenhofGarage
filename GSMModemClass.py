@@ -35,7 +35,7 @@ class GSMModem:
           logging.debug(self.serialCommand(cmd))
 
     def serialCommand(self, cmd, message = ""):
-        logging.info("Serial Command %s Message %s" % (cmd,message))
+        logging.info("Serial Command %s Message <%s>" % (cmd.replace("\r\n",""),message))
         retval = ""
         if (message != ""):
           logging.debug("-- SEND --")
