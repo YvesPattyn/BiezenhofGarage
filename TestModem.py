@@ -2,6 +2,7 @@
 
 from GSMModemClass import GSMModem
 import logging
+from PDUClass import GSMMessage
 
 logging.basicConfig(
   level=logging.INFO,
@@ -15,3 +16,6 @@ logging.info(msgNumbers)
 for msgNr in msgNumbers:
   msg = modem.readMessage(msgNr)
   logging.info("Message %i = %s" % (msgNr, msg))
+  readablemsg = GSMMessage(msg)
+  logging.info("Message: %s " % readablemsg.getMessage())
+  logging.info("Received from %s " % readablemsg.OANum)
