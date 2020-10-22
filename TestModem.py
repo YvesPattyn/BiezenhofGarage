@@ -4,7 +4,7 @@ from GSMModemClass import GSMModem
 import logging
 
 logging.basicConfig(
-  level=logging.DEBUG,
+  level=logging.INFO,
   format="%(levelname)s %(asctime)s %(message)s",
   datefmt='%a %d/%m/%Y %H:%M:%S')
 logging.info("Initialisation process of the modem")
