@@ -22,7 +22,6 @@ from MessageHandler import smsmessagehandler
 # Pulsing is done by a relay.
 # Optional regular SMS sending to indicate system is operational
 # Suggestion : every 100 times the door open an SMS is sent to Yves'mobile.
-
 ALERT_OPEN_DOOR = 180 #300 After door closure pulse, when more then ALERT_OPEN_DOOR seconds elpased and door is still open issue ALERT.
 MAX_OPEN_TIME = 120 #180 If door magnet detects door is open for MAX_OPEN_TIME, door gets shut automaticaly.
 DOOR_OPEN = 0 #GPIO status indocating an OPEN door.
