@@ -12,3 +12,6 @@ modem = GSMModem()
 logging.info("Retrieving number of messages from modem")
 msgNumbers = modem.getMessageNumbers()
 logging.info(msgNumbers)
+for msgNr in msgNumbers:
+  msg = modem.readMessage(msgNr)
+  logging.info("Message %i = %s" % (msgNr, msg))
