@@ -31,13 +31,13 @@ MODEM_INIT_ATTEMPTS = 5
 
 #disp = lcd()
 logging.basicConfig(
-  level=logging.DEBUG,
+  level=logging.INFO,
   filename="/home/pi/Logs/BiezenhofGarage.log",
   format="%(levelname)s %(asctime)s %(message)s",
   datefmt='%a %d/%m/%Y %H:%M:%S',
   filemode="w")
 console = logging.StreamHandler()
-console.setLevel(logging.DEBUG)
+console.setLevel(logging.INFO)
 formatter = logging.Formatter('%(levelname)s %(asctime)s %(message)s')
 console.setFormatter(formatter)
 logging.getLogger().addHandler(console)
