@@ -30,6 +30,7 @@ class smsmessagehandler:
     self.modem.sendMessage(destination,message)
 
   def treatsmsmessages(self):
+    self.modem.getSettings()
     self.messagetreated = False
     msgNumbers = self.modem.getMessageNumbers()
     logging.debug("MessageNumbers in modem")

@@ -37,13 +37,13 @@ logging.basicConfig(
   datefmt='%a %d/%m/%Y %H:%M:%S',
   filemode="w")
 console = logging.StreamHandler()
-console.setLevel(logging.INFO)
+console.setLevel(logging.DEBUG)
 formatter = logging.Formatter('%(levelname)s %(asctime)s %(message)s')
 console.setFormatter(formatter)
 logging.getLogger().addHandler(console)
 logging.info("===  START OF PROGRAM ===")
 logging.info("Loggers have been initiated.")
-lastlooplog = ['Holds most recent loop']
+lastlooplog = list()
 
 notification = False
 now = datetime.now()
@@ -129,15 +129,13 @@ while True:
   if not smshandler.modem.getStatus():
     logging.error("Modem is NOT OK !!! Please check.")
     lastlooplog.append("SMS Modem reports NOT OK ")
-  # If there is a modem attached, we check if there is a message on the SIM card.
-  if smshandler.ready:
+  else:
+    logging.info("Checking SMS Messages...")
     smshandler.treatsmsmessages()
     if smshandler.messagetreated:
       lastlooplog.append("An SMS was received and handled.")
       logging.info("An SMS message was received, and treated.")
-    notification = smshandler.notification
-  else:
-    logging.error("The smshanlder reports not ready!")
+      notification = smshandler.notification
   if (nbrloops % 300) == 0:
       logging.info("counting loops %i " % nbrloops)
   nbrloops += 1

@@ -35,24 +35,22 @@ class GSMModem:
           logging.debug(self.serialCommand(cmd))
 
     def serialCommand(self, cmd, message = ""):
-        logging.info("Serial Command %s Message <%s>" % (cmd.replace("\r\n",""),message))
+        logging.debug("Serial Command %s Message <%s>" % (cmd.replace("\r\n",""),message))
         retval = ""
         if (message != ""):
-          logging.debug("-- SEND --")
-          logging.debug("  Command:%s" % cmd)
-          logging.debug("---------")
-          logging.debug("  Message:%s" % message)
-          logging.debug("---------")
           message = message + ascii.ctrl('Z')
           self.ser.write(cmd.encode())
           self.ser.write(message.encode())
         else:
           self.ser.write(cmd.encode())
-        line = self.ser.readline()
-        while ( line != b'' ):
-          retval = retval + line.decode()
-          logging.debug(line)
+        try:
           line = self.ser.readline()
+          while ( line != b'' ):
+            retval = retval + line.decode()
+            logging.debug(line)
+            line = self.ser.readline()
+        except:
+          retval = ""
         return retval
 
     def setMessageStore(self):
@@ -64,7 +62,7 @@ class GSMModem:
 
     def getAllMessages(self):
         # Text Mode on
-        logging.info("getAllMessages")
+        logging.debug("getAllMessages")
         logging.debug("Switching to TEXT mode.")
         cmd = "AT+CMGF=1\r\n"
         logging.debug(self.serialCommand(cmd))
@@ -77,7 +75,7 @@ class GSMModem:
         return allMessages
 
     def getMessageNumbers(self):
-        logging.info("getMessageNumbers")
+        logging.debug("getMessageNumbers")
         messageNumbers = [0]
         messageNumbers.clear()
         msgs = self.getAllMessages()
@@ -141,29 +139,39 @@ class GSMModem:
             logging.debug(strLine)
 
     def getSettings(self):
-        retval = []
+        #cmd = 'AT+CPMS="SM","SM","SM"\r\n'
+        #logging.info("SEND: Setting Prefered Message Store %s" % cmd.replace("\r\n",""))
+        #retval = self.serialCommand(cmd)
+        #logging.info("RECV: %s" % retval.replace("\r\n"," § "))
+
         # PIN Status
         cmd = "AT+CPIN?\r\n"
-        logging.debug(cmd)
-        retval.append(self.serialCommand(cmd))
-        # New Messages Intercept"
+        logging.info("SEND: Query PIN status %s" % cmd.replace("\r\n",""))
+        retval = self.serialCommand(cmd)
+        logging.info("RECV: %s" % retval.replace("\r\n"," § "))
+
+        # New Messages Intercept
         cmd = "AT+CNMI?\r\n"
-        logging.debug(cmd)
-        retval.append(self.serialCommand(cmd))
-        cmd = "AT+CNMI=?\r\n"
-        logging.debug(cmd)
-        retval.append(self.serialCommand(cmd))
+        logging.info("SEND: Query New Message Intercept %s" % cmd.replace("\r\n",""))
+        retval = self.serialCommand(cmd)
+        logging.info("RECV: %s" % retval.replace("\r\n"," § "))
+        if not "2,0,0,2,1" in retval:
+            cmd = "AT+CNMI=2,0,0,2,1\r\n"
+            logging.info("SEND: RESET New Message Intercept %s" % cmd.replace("\r\n",""))
+            retval = self.serialCommand(cmd)
+            logging.info("RECV: %s" % retval.replace("\r\n"," § "))
+
         # PDU status [1=Active]")
         cmd = "AT+CMGF?\r\n"
-        logging.debug(cmd)
-        retval.append(self.serialCommand(cmd))
+        logging.info("SEND: Query PDU status %s" % cmd.replace("\r\n",""))
+        retval = self.serialCommand(cmd)
+        logging.info("RECV: %s" % retval.replace("\r\n"," § "))
+
         # Preffered Message Storage"
         cmd = "AT+CPMS?\r\n"
-        logging.debug(cmd)
-        retval.append(self.serialCommand(cmd))
-        cmd = "AT+CPMS=?\r\n"
-        logging.debug(cmd)
-        retval.append(self.serialCommand(cmd))
+        logging.info("SEND: Query Prefered Message Storage %s" % cmd.replace("\r\n",""))
+        retval = self.serialCommand(cmd)
+        logging.info("RECV: %s" % retval.replace("\r\n"," § "))
 
     def getStatus(self):
         cmd = "AT+CPMS?\r\n"
